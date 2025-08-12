@@ -22,6 +22,22 @@ services:
       - "9000:9000"
     # volumes:
     #   - clickhouse-data:/var/lib/clickhouse
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: grafana
+      GF_SECURITY_ADMIN_PASSWORD: grafana
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - ../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ../grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - clickhouse
 
 # volumes:
 #   clickhouse-data:
