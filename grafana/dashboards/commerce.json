@@ -1,0 +1,110 @@
+{
+  "id": null,
+  "uid": "commerce",
+  "title": "Commerce — Ventas & Inventario",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Ingresos (rango seleccionado)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT sum(qty * toFloat64(unit_price)) AS revenue FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts));"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "fieldConfig": { "defaults": { "unit": "currency:EUR", "decimals": 2 }, "overrides": [] }
+    },
+    {
+      "type": "stat",
+      "title": "Pedidos",
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT count() AS orders FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts));"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Clientes únicos",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT countDistinct(customer_id) AS customers FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts));"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Ingresos en el tiempo",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "time_series",
+          "rawSql": "SELECT toStartOfInterval(toDateTime(ts), INTERVAL $__interval_s SECOND) AS time, sum(qty * toFloat64(unit_price)) AS revenue FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts)) GROUP BY time ORDER BY time;"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currency:EUR", "decimals": 2 }, "overrides": [] }
+    },
+    {
+      "type": "barchart",
+      "title": "Top 10 productos por ingresos",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "options": { "orientation": "horizontal" },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT product_name, sum(qty * toFloat64(unit_price)) AS revenue FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts)) GROUP BY product_name ORDER BY revenue DESC LIMIT 10;"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currency:EUR", "decimals": 2 }, "overrides": [] }
+    },
+    {
+      "type": "piechart",
+      "title": "Ingresos por categoría",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT category, sum(qty * toFloat64(unit_price)) AS revenue FROM commerce.fact_sales WHERE $__timeFilter(toDateTime(ts)) GROUP BY category ORDER BY revenue DESC;"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "currency:EUR", "decimals": 2 }, "overrides": [] }
+    },
+    {
+      "type": "table",
+      "title": "Stock por almacén (última fecha)",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH last_d AS (SELECT max(date) AS d FROM commerce.fact_inventory) SELECT warehouse_id, sum(stock_units) AS stock FROM commerce.fact_inventory WHERE date = (SELECT d FROM last_d) GROUP BY warehouse_id ORDER BY stock DESC;"
+        }
+      ]
+    }
+  ]
+}
