@@ -1,0 +1,44 @@
+services:
+  python-dev:
+    image: python:3.13
+    container_name: python-dev
+    volumes:
+      - ../.:/workspace
+    ports:
+      - "8000:8000"
+    depends_on:
+      - clickhouse
+    command: sleep infinity
+
+  clickhouse:
+    image: clickhouse:latest
+    container_name: clickhouse
+    environment:
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_DB: commerce
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ../clickhouse/init:/docker-entrypoint-initdb.d
+    #   - clickhouse-data:/var/lib/clickhouse
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: grafana
+      GF_SECURITY_ADMIN_PASSWORD: grafana
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - ../grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ../grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ../grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - clickhouse
+
+# volumes:
+#   clickhouse-data:
