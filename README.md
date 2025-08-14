@@ -10,6 +10,13 @@ The goal of this project is to provide a preconfigured development environment t
 - **Data Analysis**: Implement data analysis and transformation processes.
 - **Application Development**: Build applications that interact with processed data.
 
+The diagram below shows the interaction between the project components:
+
+<p align="center">
+  <img src="media/diagram.png" alt="Diagram" width="80%">
+</p>
+
+
 ## Key Features
 
 - **DevContainers**: Development container configuration to ensure a consistent environment.
