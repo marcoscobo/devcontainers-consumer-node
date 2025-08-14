@@ -5,7 +5,7 @@ services:
     volumes:
       - ../.:/workspace
     ports:
-      - "8000:8000"
+      - "8081:8000"
     depends_on:
       - clickhouse
     command: sleep infinity
@@ -18,8 +18,8 @@ services:
       CLICKHOUSE_PASSWORD: clickhouse
       CLICKHOUSE_DB: commerce
     ports:
-      - "8123:8123"
-      - "9000:9000"
+      - "8121:8123"
+      - "9091:9000"
     volumes:
       - ../clickhouse/init:/docker-entrypoint-initdb.d
     #   - clickhouse-data:/var/lib/clickhouse
